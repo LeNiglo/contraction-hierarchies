@@ -16,7 +16,7 @@ double			Parser::parseFile(std::vector<std::shared_ptr<Road> >& roads)
 	{
 		return false;
 	}
-
+	
 	std::string line;
 	while (std::getline(infile, line))
 	{
@@ -26,7 +26,7 @@ double			Parser::parseFile(std::vector<std::shared_ptr<Road> >& roads)
 		std::string				tmp_token;
 		int						i = 0;
 		int						numpoints;
-
+		
 		while (std::getline(iss, token, ','))
 		{
 			switch(i)
@@ -84,33 +84,32 @@ void			Parser::createNode(const std::pair<double, double> &pair, Graph &graph)
 bool			Parser::parseRoads(std::vector<std::shared_ptr<Road> >& roads, Graph &graph)
 {
 	double		distance;
-
+	
 	for (auto& road : roads)
 	{
 		for (int i = 0; i < road->getPoints().size(); ++i)
 		{
 			std::pair<double, double> pair = road->getPoints()[i];
-
+			
 			if (i == 0 || _points[pair] > 1 || i == road->getPoints().size() - 1)
 			{
 				if (_index[pair] == 0)
 				{
 					createNode(pair, graph);
 				}
-
+				
 				if (i != 0)
 				{
-					int idx = _index[_lastNode];
-					graph.AddArc(idx, _index[pair]);
+					graph.AddArc(_index[_lastNode] - 1, _index[pair] - 1);
 					if (!road->getOneway())
 					{
-						graph.AddArc(_index[pair], idx);
+						graph.AddArc(_index[pair] - 1, _index[_lastNode] - 1);
 					}
 				}
-
+				
 				_lastNode = pair;
 			}
-
+			
 		}
 	}
 	return (true);
