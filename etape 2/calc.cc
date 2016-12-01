@@ -1,6 +1,6 @@
 #include <cmath>
 #define pi 3.14159265358979323846
-#define earthRadiusKm 6371.0
+#define earthRadiusKm 6371.0088
 
 // This function converts decimal degrees to radians
 double deg2rad(double deg) {

@@ -67,5 +67,5 @@ void						Graph::display(const double d)
 {
 	std::cout << NumNodes() << std::endl;
 	std::cout << NumArcs() << std::endl;
-	std::cout << d << std::endl;
+	printf("%lf\n", d);
 }

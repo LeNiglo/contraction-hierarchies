@@ -88,17 +88,39 @@ double			Parser::parseRoads(std::vector<t_road>& roads, Graph &graph)
 					bool lastNodePassed = false;
 					for (int j = 0; j < roadPointsSize; ++j)
 					{
-						if (lastNodePassed || (road._points[j].first == _lastNode.first && road._points[j].second == _lastNode.second))
+						if (road._points[j].first == _lastNode.first && road._points[j].second == _lastNode.second)
 						{
 							lastNodePassed = true;
+						}
+
+						if (lastNodePassed || true)
+						{
 							_duration += distanceEarth(
 								road._points[j].first,
 								road._points[j].second,
 								_lastNode.first,
 								_lastNode.second
-							) / road._maxSpeed * 3600.0;
+							) / (double) road._maxSpeed * 3600.0;
+
+							fprintf(stderr, "On \"%s\" @ %dkm/h\t => %lf km in %lf s\n",
+							road._name.c_str(), 
+							road._maxSpeed,
+							distanceEarth(
+								road._points[j].first,
+								road._points[j].second,
+								_lastNode.first,
+								_lastNode.second
+							), distanceEarth(
+								road._points[j].first,
+								road._points[j].second,
+								_lastNode.first,
+								_lastNode.second
+							) / (double) road._maxSpeed * 3600.0);
 						}
+
+
 					}
+
 					graph.AddArc(_index[_lastNode] - 1, _index[pair] - 1);
 					if (!road._oneway)
 					{
