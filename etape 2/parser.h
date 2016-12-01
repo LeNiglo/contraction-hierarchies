@@ -10,7 +10,6 @@
 
 # include "graph.h"
 # include "road.hpp"
-# include "calclatlong/haversine.h"
 
 class Parser
 {
@@ -25,10 +24,11 @@ private:
 
 public:
 	Parser(const std::string &filename);
-	double			parseFile(std::vector<std::shared_ptr<Road> >& roads);
+	bool			parseFile(std::vector<t_road>& roads);
 	void			createNode(const std::pair<double, double> &pair, Graph &graph);
-
-	bool			parseRoads(std::vector<std::shared_ptr<Road> >& roads, Graph &graph);
+	double			parseRoads(std::vector<t_road>& roads, Graph &graph);
 };
+
+double distanceEarth(double, double, double, double);
 
 #endif /* PARSER_H_ */

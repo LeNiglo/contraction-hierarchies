@@ -9,11 +9,11 @@ int		main(int ac, char **av)
 	}
 
 	Parser		parser(av[1]);
-	std::vector<std::shared_ptr<Road> >	roads;
+	std::vector<t_road> roads;
 	Graph		graph;
 
 	parser.parseFile(roads);
-	parser.parseRoads(roads, graph);
-	graph.display(0);
+	double d = parser.parseRoads(roads, graph);
+	graph.display(d);
 	return (EXIT_SUCCESS);
 }

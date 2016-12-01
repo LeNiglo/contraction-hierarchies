@@ -3,9 +3,9 @@ NAME=		server
 CXXFLAGS=	-std=c++11 -Wall -Wextra -W #-Werror
 
 SRCS=		main.cc \
-			parser.cc \
-			graph.cc \
-			calclatlong/haversine.cc
+				parser.cc \
+				graph.cc \
+				calc.cc
 
 OBJS=		$(SRCS:.cc=.o)
 
