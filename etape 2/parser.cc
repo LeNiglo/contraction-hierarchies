@@ -9,14 +9,14 @@ Parser::Parser(const std::string &filename)
 }
 
 
-double			Parser::parseFile(std::vector<std::shared_ptr<Road> >& roads, Graph &graph)
+double			Parser::parseFile(std::vector<std::shared_ptr<Road> >& roads)
 {
 	std::ifstream infile(this->_filename);
 	if (!infile)
 	{
 		return false;
 	}
-	
+
 	std::string line;
 	while (std::getline(infile, line))
 	{
@@ -26,7 +26,7 @@ double			Parser::parseFile(std::vector<std::shared_ptr<Road> >& roads, Graph &gr
 		std::string				tmp_token;
 		int						i = 0;
 		int						numpoints;
-		
+
 		while (std::getline(iss, token, ','))
 		{
 			switch(i)
@@ -65,74 +65,106 @@ double			Parser::parseFile(std::vector<std::shared_ptr<Road> >& roads, Graph &gr
 					std::pair<double, double>	pair(std::atof(tmp_token.c_str()), std::atof(token.c_str()));
 					road->AddPoints(pair);
 					++_points[pair];
-					
-					if (_points[pair] < 2)
-					{
-						if (i == 7)
-						{
-							createNode(pair, road, graph, 0);
-						}
-						else if (i == 5 + numpoints * 2)
-						{
-							createNode(pair, road, graph, 1);
-						}
-					}
-					else if (_points[pair] == 2)
-					{
-						createNode(pair, road, graph, -1);
-					}
-					
-					
-					if (_points[pair] >= 2 && i != 7)
-					{
-						bool		lastNodePassed = false;
-						
-						int idx = _index[_lastNode];
-						
-						for (int i = 0; i < road->getPoints().size(); i++)
-						{
-							if (lastNodePassed || (road->getPoints()[i].first == _lastNode.first && road->getPoints()[i].second == _lastNode.second))
-							{
-								lastNodePassed = true;
-								Haversine haversine(road->getPoints()[i].first, road->getPoints()[i].second, _lastNode.first, _lastNode.second);
-								_duration += haversine.DistanceKm() / (double) road->getMaxSpeed() * 3600.0;
-							}
-						}
-						
-						graph.AddArc(idx, _nodeIndex - 1);
-						if (!road->getOneway())
-						{
-							graph.AddArc(_nodeIndex - 1, idx);
-						}
-						
-					}
-					
-					if (_points[pair] >= 2)
-					{
-						_lastNode = pair;
-					}
-					
 				}
 				break;
 			};
 			++i;
 		}
+		roads.push_back(road);
 	}
-	return _duration;
+	return 0;
 }
 
-void			Parser::createNode(const std::pair<double, double> &pair, const std::shared_ptr<Road> &road, Graph &graph, const char &beginend)
+void			Parser::createNode(const std::pair<double, double> &pair, Graph &graph)
 {
-	_index[pair] = _nodeIndex;
 	graph.AddNode(_nodeIndex++, pair);
-	
-	if (beginend == 0 || beginend == 1)
-	{
-		_points[pair] = 102;
-	}
+	_index[pair] = _nodeIndex;
 }
 
 bool			Parser::parseRoads(std::vector<std::shared_ptr<Road> >& roads, Graph &graph)
 {
-	return true;
+	double		distance;
+
+	for (auto& road : roads)
+	{
+		for (int i = 0; i < road->getPoints().size(); ++i)
+		{
+			std::pair<double, double> pair = road->getPoints()[i];
+
+			if (i == 0 || _points[pair] > 1 || i == road->getPoints().size() - 1)
+			{
+				if (_index[pair] == 0)
+				{
+					createNode(pair, graph);
+				}
+
+				if (i != 0)
+				{
+					int idx = _index[_lastNode];
+					graph.AddArc(idx, _index[pair]);
+					if (!road->getOneway())
+					{
+						graph.AddArc(_index[pair], idx);
+					}
+				}
+
+				_lastNode = pair;
+			}
+
+		}
+	}
+	return (true);
 }
+/*
+
+if (_points[pair] < 2)
+{
+if (i == 7)
+{
+createNode(pair, road, graph, 0);
+}
+else if (i == 5 + numpoints * 2)
+{
+createNode(pair, road, graph, 1);
+}
+}
+else if (_points[pair] == 2)
+{
+createNode(pair, road, graph, -1);
+}
+
+
+if (_points[pair] >= 2 && i != 7)
+{
+bool		lastNodePassed = false;
+
+int idx = _index[_lastNode];
+
+for (int i = 0; i < road->getPoints().size(); i++)
+{
+if (lastNodePassed || (road->getPoints()[i].first == _lastNode.first && road->getPoints()[i].second == _lastNode.second))
+{
+lastNodePassed = true;
+Haversine haversine(road->getPoints()[i].first, road->getPoints()[i].second, _lastNode.first, _lastNode.second);
+_duration += haversine.DistanceKm() / (double) road->getMaxSpeed() * 3600.0;
+}
+}
+
+graph.AddArc(idx, _nodeIndex - 1);
+if (!road->getOneway())
+{
+graph.AddArc(_nodeIndex - 1, idx);
+}
+
+}
+
+if (_points[pair] >= 2)
+{
+_lastNode = pair;
+}
+
+}
+
+return true;
+}
+*/
