@@ -10,7 +10,6 @@ class Haversine {
 private:
   double _lat_1, _lon_1, _lat_2, _lon_2;
   double result;
-  const double PI = 4.0 * atan(1.0);
   const double radius_earth_km = 6371.0088 ;
 
 public:
