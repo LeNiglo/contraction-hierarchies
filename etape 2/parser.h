@@ -17,17 +17,17 @@ class Parser
 private:
 	std::string									_filename;
 	std::map<std::pair<double, double>, int>	_points;
-
+	std::map<std::pair<double, double>, int>	_index;
+	
 	std::pair<double, double> 					_lastNode;
 	int											_nodeIndex;
-
+	double										_duration;
+	
 public:
 	Parser(const std::string &filename);
-	bool			parseFile(std::vector<std::shared_ptr<Road> >& roads, Graph &graph);
+	double			parseFile(std::vector<std::shared_ptr<Road> >& roads, Graph &graph);
 	void			createNode(const std::pair<double, double> &pair, const std::shared_ptr<Road> &road, Graph &graph, const char &beginend);
-	int				getIndexOfLastNode(Graph &graph);
-
-
+	
 	bool			parseRoads(std::vector<std::shared_ptr<Road> >& roads, Graph &graph);
 };
 

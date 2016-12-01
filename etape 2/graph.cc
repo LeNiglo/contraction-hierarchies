@@ -2,18 +2,17 @@
 
 Graph::Graph()
 {
-
+	
 }
 
-int Graph::AddArc(int from, int to, const double &duration)
+int Graph::AddArc(int from, int to)
 {
 	this->arcs.push_back(std::pair<int, int>(from, to));
-	this->durations.push_back(duration);
-
+	
 	int index = this->arcs.size() - 1;
 	this->outgoing[from].push_back(index);
 	this->incoming[to].push_back(index);
-
+	
 	return (index);
 }
 
@@ -64,11 +63,9 @@ const std::vector<std::pair<double, double> >&	Graph::getPositions()
 	return this->positions;
 }
 
-void						Graph::display()
+void						Graph::display(double d)
 {
-	std::cerr << "Display" << std::endl;
 	std::cout << NumNodes() << std::endl;
 	std::cout << NumArcs() << std::endl;
-	// TODO duration
-	std::cout << 0 << std::endl;
+	std::cout << d << std::endl;
 }
