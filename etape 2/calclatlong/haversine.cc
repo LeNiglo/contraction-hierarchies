@@ -17,7 +17,7 @@ Haversine::Haversine(double lat_1, double lon_1, double lat_2, double lon_2)
 }
 
 double Haversine::DistanceKm() {
- return 2 * radius_earth_km * std::asin(result);
+	return 2 * radius_earth_km * std::asin(result);
 }
 
 double Haversine::DistanceMeters() {
