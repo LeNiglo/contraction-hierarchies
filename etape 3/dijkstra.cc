@@ -36,14 +36,11 @@ void Dijkstra::RunUntilAllTargetsAreReached(int source, const vector<int>& targe
 			target.push_back(i);
 	}
 
-	for (auto it : target)
-	{
-		std::cout << "Target: " << it << std::endl;
-	}
-
 	_reachedNode.clear();
 	_distances.clear();
+	_parentsArc.clear();
 	_distances.resize(_graph->NumNodes(), std::numeric_limits<double>::infinity());
+	_parentsArc.resize(_graph->NumNodes(), -1);
 
 	_distances[source] = 0;
 	_reachedNode.push_back(source);
@@ -58,7 +55,6 @@ void Dijkstra::RunUntilAllTargetsAreReached(int source, const vector<int>& targe
 void Dijkstra::Travel(int source, std::priority_queue<DijkstraState> queue,
 						vector<int>& targets)
 {
-	std::cout << "Je suis " << source << std::endl;
 	vector<int> outArc = _graph->OutgoingArcs(source);
 
 	// Erase Target if find
@@ -126,13 +122,9 @@ vector<int> Dijkstra::ArcPathFromSourceTo(int node) const
 		return ret;
 
 	do {
-		std::cout << "Idx: " << i << " | Arc: " << _parentsArc[i] << std::endl;
-		std::cout << "Tail: " << _graph->Tail(_parentsArc[i]) << " | Head: " << _graph->Head(_parentsArc[i]) << std::endl;
 		ret.push_back(_parentsArc[i]);
 		i = _graph->Tail(_parentsArc[i]);
 	} while(_parentsArc[i] != -1 && i != node);
-	std::cout << "Idx: " << i << " | Arc: " << _parentsArc[i] << std::endl;
-	std::cout << "Tail: " << _graph->Tail(_parentsArc[i]) << " | Head: " << _graph->Head(_parentsArc[i]) << std::endl;
 
 	std::reverse(ret.begin(), ret.end());
 	return ret;
