@@ -10,13 +10,12 @@
 
 using namespace std;
 
-double DistanceBetweenLatLngs(pair<double, double> ll1,
-                              pair<double, double> ll2);
+double DistanceBetweenLatLngs(pair<double, double> ll1, pair<double, double> ll2);
 
 struct RoadData {
-  Graph graph;
-  vector<double> arc_durations;
-  map<pair<double, double>, int> latlng_to_node;
+	Graph graph;
+	vector<double> arc_durations;
+	map<pair<double, double>, int> latlng_to_node;
 };
 
 RoadData ParseCsvFile(string filename);

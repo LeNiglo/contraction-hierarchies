@@ -2,7 +2,6 @@
 
 Parser::Parser(const std::string &filename)
 {
-	_duration = 0;
 	this->_filename = filename;
 	this->_points = std::map<std::pair<double, double>, int>();
 	this->_index = std::map<std::pair<double, double>, int>();
@@ -70,6 +69,8 @@ void			Parser::createNode(const std::pair<double, double> &pair, Graph &graph)
 
 double			Parser::parseRoads(std::vector<t_road>& roads, Graph &graph)
 {
+	double duration = 0;
+
 	for (auto& road : roads)
 	{
 		for (int i = 0, roadPointsSize = road._points.size(); i < roadPointsSize; ++i)
@@ -85,25 +86,17 @@ double			Parser::parseRoads(std::vector<t_road>& roads, Graph &graph)
 
 				if (i != 0)
 				{
-					bool lastNodePassed = false;
 					for (int j = 0; j < roadPointsSize; ++j)
 					{
-						if (road._points[j].first == _lastNode.first && road._points[j].second == _lastNode.second)
-						{
-							lastNodePassed = true;
-						}
-
-						if (lastNodePassed || true)
-						{
-							_duration += distanceEarth(
+							duration += distanceEarth(
 								road._points[j].first,
 								road._points[j].second,
 								_lastNode.first,
 								_lastNode.second
 							) / (double) road._maxSpeed * 3600.0;
 
-							fprintf(stderr, "On \"%s\" @ %dkm/h\t => %lf km in %lf s\n",
-							road._name.c_str(), 
+							/*fprintf(stderr, "On \"%s\" @ %dkm/h\t => %lf km in %lf s\n",
+							road._name.c_str(),
 							road._maxSpeed,
 							distanceEarth(
 								road._points[j].first,
@@ -115,9 +108,7 @@ double			Parser::parseRoads(std::vector<t_road>& roads, Graph &graph)
 								road._points[j].second,
 								_lastNode.first,
 								_lastNode.second
-							) / (double) road._maxSpeed * 3600.0);
-						}
-
+							) / (double) road._maxSpeed * 3600.0);*/
 
 					}
 
@@ -126,11 +117,14 @@ double			Parser::parseRoads(std::vector<t_road>& roads, Graph &graph)
 					{
 						graph.AddArc(_index[pair] - 1, _index[_lastNode] - 1);
 					}
+					_durations.push_back(duration);
+					duration = 0;
+
 				}
 
 				_lastNode = pair;
 			}
 		}
 	}
-	return (_duration);
+	return (std::accumulate(_durations.begin(), _durations.end(), 0));
 }

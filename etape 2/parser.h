@@ -7,6 +7,7 @@
 # include <sstream>
 # include <string>
 # include <cstdlib>
+# include <numeric>
 
 # include "graph.h"
 # include "road.h"
@@ -20,7 +21,7 @@ private:
 
 	std::pair<double, double> 					_lastNode;
 	int											_nodeIndex;
-	double										_duration;
+	std::vector<double>							_durations;
 
 public:
 	Parser(const std::string &filename);

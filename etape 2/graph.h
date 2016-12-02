@@ -17,7 +17,6 @@ private:
 	std::vector<std::pair<double, double> >	positions;
 
 	std::vector<std::pair<int, int> >		arcs;
-	std::vector<double>						durations;
 
 public:
 	Graph();

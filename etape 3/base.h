@@ -19,42 +19,42 @@ using std::string;
 using std::vector;
 
 class OstreamVoidifier {
- public:
-  // This has to be an operator with a precedence lower than << but
-  // higher than ?:
-  void operator&(::std::ostream&) {}
+public:
+	// This has to be an operator with a precedence lower than << but
+	// higher than ?:
+	void operator&(::std::ostream&) {}
 };
 
 class Logger {
- public:
-  Logger(const char* file, int line) {
-    stream() << file << ":" << line << ": ";
-  }
-  ~Logger() {
-    stream() << std::endl;
-  }
-  std::ostream& stream() { return std::cerr; }
+public:
+	Logger(const char* file, int line) {
+		stream() << file << ":" << line << ": ";
+	}
+	~Logger() {
+		stream() << std::endl;
+	}
+	std::ostream& stream() { return std::cerr; }
 };
 
 class FatalLogger : public Logger {
- public:
-  FatalLogger(const char* file, int line, const char* message)
-      : Logger(file, line) {
-    stream() << "Assertion failed: " << message << " ";
-  }
-  ~FatalLogger() {
-    stream() << std::endl;
-    exit(1);
-  }
-  std::ostream& stream() { return std::cerr; }
+public:
+	FatalLogger(const char* file, int line, const char* message)
+	: Logger(file, line) {
+		stream() << "Assertion failed: " << message << " ";
+	}
+	~FatalLogger() {
+		stream() << std::endl;
+		exit(1);
+	}
+	std::ostream& stream() { return std::cerr; }
 };
 
 #define CHECK(x) (x) ? (void)0 \
-    : OstreamVoidifier() & FatalLogger(__FILE__, __LINE__, #x).stream()
+: OstreamVoidifier() & FatalLogger(__FILE__, __LINE__, #x).stream()
 
 #define CHECK_BINARY(test, x, y) \
-    CHECK((x) test (y)) << std::endl << "Left value: " << (x) << std::endl\
-                        << "Right value: " << (y) << std::endl
+CHECK((x) test (y)) << std::endl << "Left value: " << (x) << std::endl\
+<< "Right value: " << (y) << std::endl
 
 #define CHECK_EQ(x, y) CHECK_BINARY(==, x, y)
 #define CHECK_NE(x, y) CHECK_BINARY(!=, x, y)
@@ -76,40 +76,40 @@ inline bool IsValidLongitude(double lng) { return lng >= -180 && lng < 180; }
 
 template<class T>
 string PrintHistogram(const T& v) {
-  typedef typename T::value_type Value;
-  map<Value, int> count;
-  for (const Value& x : v) ++count[x];
-  vector<pair<int, Value>> pairs;
-  for (const auto& p : count) pairs.push_back({p.second, p.first});
-  std::sort(pairs.begin(), pairs.end());
-  std::reverse(pairs.begin(), pairs.end());
-  std::ostringstream os;
-  for (const auto& p : pairs) {
-    os << "  #" << p.first << " of '" << p.second << "'\n";
-  }
-  return os.str();
+	typedef typename T::value_type Value;
+	map<Value, int> count;
+	for (const Value& x : v) ++count[x];
+	vector<pair<int, Value>> pairs;
+	for (const auto& p : count) pairs.push_back({p.second, p.first});
+	std::sort(pairs.begin(), pairs.end());
+	std::reverse(pairs.begin(), pairs.end());
+	std::ostringstream os;
+	for (const auto& p : pairs) {
+		os << "  #" << p.first << " of '" << p.second << "'\n";
+	}
+	return os.str();
 }
 
 template<class T>
 string PrintList(const T& v) {
-  std::ostringstream os;
-  os << "[ ";
-  for (const auto x : v) os << x << " ";
-  os << "]";
-  return os.str();
+	std::ostringstream os;
+	os << "[ ";
+	for (const auto x : v) os << x << " ";
+	os << "]";
+	return os.str();
 }
 
 template<class T>
 vector<T> Sorted(const vector<T>& v) {
-  vector<T> s = v;
-  std::sort(s.begin(), s.end());
-  return s;
+	vector<T> s = v;
+	std::sort(s.begin(), s.end());
+	return s;
 }
 
 template<class T>
 void SortAndRemoveDuplicates(vector<T>* v) {
-  std::sort(v->begin(), v->end());
-  v->erase(std::unique(v->begin(), v->end()), v->end());
+	std::sort(v->begin(), v->end());
+	v->erase(std::unique(v->begin(), v->end()), v->end());
 }
 
 #define kint32max 0x7ffffff
