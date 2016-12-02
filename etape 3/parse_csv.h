@@ -5,6 +5,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cstdlib>
+#include <iostream>
+#include <sstream>
 
 #include "graph.h"
 
