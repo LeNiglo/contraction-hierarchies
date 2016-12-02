@@ -38,7 +38,7 @@ public:
 	// the lifetime of this class.
 	Dijkstra(const Graph* graph, const vector<double>* arc_lengths);
 
-	void Travel(int source, std::priority_queue<DijkstraState> queue, vector<int>& targets);
+	void Travel(int source, std::priority_queue<DijkstraState>& queue, vector<int>& targets);
 
 	const Graph& GetGraph() const;
 

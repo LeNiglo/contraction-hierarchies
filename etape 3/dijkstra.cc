@@ -17,10 +17,6 @@ const Graph& Dijkstra::GetGraph() const
 	return *_graph;
 }
 
-// vector<double> _distances;
-// vector<int> _parentsArc;
-// vector<int> _arcsPath;
-
 // Main Dijkstra call: run a single-source search from source "source",
 // and stop when all the targets are reached.
 // If "targets" is empty, run until exhaustion (i.e. until all reachable
@@ -44,15 +40,26 @@ void Dijkstra::RunUntilAllTargetsAreReached(int source, const vector<int>& targe
 
 	_distances[source] = 0;
 	_reachedNode.push_back(source);
-	Travel(source, queue, target);
 
-	// do {
-	// 	_graph.OutgoingArcs(source);
-	//
-	// } while(!targets.empty() || !queue.empty());
+	while (!target.empty() || !queue.empty())
+	{
+		Travel(source, queue, target);
+
+		DijkstraState nextSource;
+
+		do {
+			if (queue.empty())
+				return;
+			nextSource = queue.top();
+			queue.pop();
+		} while(std::find(_reachedNode.begin(), _reachedNode.end(), nextSource.node) != _reachedNode.end());
+		_reachedNode.push_back(source);
+
+		source = nextSource.node;
+	}
 }
 
-void Dijkstra::Travel(int source, std::priority_queue<DijkstraState> queue,
+void Dijkstra::Travel(int source, std::priority_queue<DijkstraState>& queue,
 						vector<int>& targets)
 {
 	vector<int> outArc = _graph->OutgoingArcs(source);
@@ -73,20 +80,6 @@ void Dijkstra::Travel(int source, std::priority_queue<DijkstraState> queue,
 			queue.push({next, _distances[next]});
 		}
 	}
-
-	DijkstraState nextSource;
-
-	do {
-		if (queue.empty())
-			return;
-		nextSource = queue.top();
-		queue.pop();
-	} while(std::find(_reachedNode.begin(), _reachedNode.end(), nextSource.node) != _reachedNode.end());
-	_reachedNode.push_back(source);
-
-	if (!targets.empty())
-		Travel(nextSource.node, queue, targets);
-	return;
 }
 
 // Returns the set of all nodes reached by the last run.
