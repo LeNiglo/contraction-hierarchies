@@ -111,11 +111,9 @@ vector<int> Dijkstra::ArcPathFromSourceTo(int node) const
 {
 	vector<int> ret(0, 0);
 
-	for (;_parentsArc[node] != -1;node = _graph->Tail(_parentsArc[node]))
-		ret.push_back(_graph->Tail(_parentsArc[node]));
+	for (; _parentsArc[node] != -1;node = _graph->Tail(_parentsArc[node]))
+		ret.push_back(_parentsArc[node]);
 
 	std::reverse(ret.begin(), ret.end());
-	// for (auto it : ret)
-	// 	std::cout << it << std::endl;
 	return ret;
 }
