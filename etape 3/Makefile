@@ -2,10 +2,10 @@ NAME=		server
 
 CXXFLAGS=	-std=c++11 -Wall -Wextra -W #-Werror
 
-SRCS=		main.cc \
-				parser.cc \
-				graph.cc \
-				calc.cc
+SRCS=		parse_csv_main.cc \
+		parse_csv.cc \
+		graph.cc
+
 
 OBJS=		$(SRCS:.cc=.o)
 
