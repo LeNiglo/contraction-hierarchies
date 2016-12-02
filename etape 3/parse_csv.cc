@@ -47,7 +47,7 @@ RoadData ParseCsvFile(string filename) {
 		istringstream is(line);
 		while (getline(is, field, ',')) fields.push_back(field);
 		int numpoints = stoi(fields[5]);
-		CHECK_EQ(2 * numpoints + 6, fields.size()) << line;
+		CHECK_EQ((std::size_t) (2 * numpoints + 6), fields.size()) << line;
 		Road road;
 		for (int i = 0; i < numpoints; ++i)
 		{

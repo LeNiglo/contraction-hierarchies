@@ -1,12 +1,14 @@
+#include <algorithm>
+#include <vector>
 #include "dijkstra.h"
 
 bool DijkstraState::operator<(const DijkstraState& other) const
 {
-	
+	return distance > other.distance;
 }
 
 Dijkstra::Dijkstra(const Graph* graph, const vector<double>* arc_lengths)
-: _graph(graph), _arc_lengths(arc_lengths)
+: _graph(graph), _arc_lengths(arc_lengths), _distances(graph->NumNodes(), std::numeric_limits<double>::infinity()), _parentsArc(graph->NumNodes(), -1), _arcsPath()
 {
 }
 
@@ -15,12 +17,70 @@ const Graph& Dijkstra::GetGraph() const
 	return *_graph;
 }
 
+// vector<double> _distances;
+// vector<int> _parentsArc;
+// vector<int> _arcsPath;
+
 // Main Dijkstra call: run a single-source search from source "source",
 // and stop when all the targets are reached.
 // If "targets" is empty, run until exhaustion (i.e. until all reachable
 // nodes are explored).
 void Dijkstra::RunUntilAllTargetsAreReached(int source, const vector<int>& targets)
 {
+	std::vector<int> target(targets);
+	std::priority_queue<DijkstraState> queue;
+
+	if (target.size() == 0)
+	{
+		for (int i = 0;i < _graph->NumNodes();++i)
+			target.push_back(i);
+	}
+
+	_distances[source] = 0;
+	_reachedNode.push_back(source);
+	Travel(source, queue, target);
+	// do {
+	// 	_graph.OutgoingArcs(source);
+	//
+	// } while(!targets.empty() || !queue.empty());
+}
+
+void Dijkstra::Travel(int source, std::priority_queue<DijkstraState> queue,
+						vector<int>& targets)
+{
+	vector<int> outArc = _graph->OutgoingArcs(source);
+
+	// Erase Target if find
+	std::vector<int>::iterator it = std::find(targets.begin(), targets.end(), source);
+	if (it != targets.end())
+		targets.erase(it);
+
+	for (auto it : outArc)
+	{
+		int next = _graph->Head(it);
+
+		if (_distances[source] + (*_arc_lengths)[it] < _distances[next])
+		{
+			_parentsArc[next] = it;
+			_distances[next] = _distances[source] + (*_arc_lengths)[it];
+			queue.push({next, _distances[next]});
+		}
+
+	}
+
+	DijkstraState nextSource;
+
+	do {
+		if (queue.empty())
+			return;
+		nextSource = queue.top();
+		queue.pop();
+	} while(std::find(_reachedNode.begin(), _reachedNode.end(), nextSource.node) != _reachedNode.end());
+	_reachedNode.push_back(source);
+
+	if (!targets.empty())
+		Travel(nextSource.node, queue, targets);
+	return;
 }
 
 // Returns the set of all nodes reached by the last run.
@@ -49,5 +109,11 @@ const vector<int>& Dijkstra::ParentArcs() const
 // the last run to "node", assuming that "node" was reached.
 vector<int> Dijkstra::ArcPathFromSourceTo(int node) const
 {
-	return _arcsPath;
+	vector<int> ret(0, 0);
+
+	for (; _parentsArc[node] != -1;node = _graph->Tail(_parentsArc[node]))
+		ret.push_back(_parentsArc[node]);
+
+	std::reverse(ret.begin(), ret.end());
+	return ret;
 }
