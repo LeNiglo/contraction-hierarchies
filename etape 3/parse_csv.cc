@@ -66,10 +66,10 @@ RoadData ParseCsvFile(string filename) {
 	// Determine which lat/lng are in fact nodes.
 	map<pair<double, double>, int> latlng_count;
 	set<pair<double, double>> latlng_nodes;
-	for (int i = 0; i < roads.size(); ++i)
+	for (std::size_t i = 0; i < roads.size(); ++i)
 	{
 		const Road& road = roads[i];
-		for (int j = 0; j < road.latlngs.size(); ++j)
+		for (std::size_t j = 0; j < road.latlngs.size(); ++j)
 		{
 			pair<double, double> ll = road.latlngs[j];
 			if (++latlng_count[ll] > 1) latlng_nodes.insert(ll);
@@ -90,10 +90,10 @@ RoadData ParseCsvFile(string filename) {
 
 	Graph graph;
 	vector<double> arc_durations;
-	for (int r = 0; r < roads.size(); ++r)
+	for (std::size_t r = 0; r < roads.size(); ++r)
 	{
 		const Road& road = roads[r];
-		int i = 0;
+		std::size_t i = 0;
 		while (i < road.latlngs.size() - 1)
 		{
 			int j = i + 1;
@@ -116,7 +116,7 @@ RoadData ParseCsvFile(string filename) {
 	}
 	cout << arc_durations.size() << endl;  // Print num_arcs
 	double duration_sum = 0;
-	for (int i = 0; i < arc_durations.size(); ++i)
+	for (std::size_t i = 0; i < arc_durations.size(); ++i)
 	{
 		duration_sum += arc_durations[i];
 	}
