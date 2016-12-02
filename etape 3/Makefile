@@ -4,8 +4,8 @@ CXXFLAGS=	-std=c++11 -Wall -Wextra -W #-Werror
 
 SRCS=		parse_csv_main.cc \
 		parse_csv.cc \
-		graph.cc
-
+		graph.cc \
+		dijkstra.cc
 
 OBJS=		$(SRCS:.cc=.o)
 
