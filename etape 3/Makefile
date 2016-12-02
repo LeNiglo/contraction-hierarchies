@@ -2,7 +2,7 @@ NAME=		server
 
 CXXFLAGS=	-std=c++11 -Wall -Wextra -W #-Werror
 
-SRCS=		parse_csv_main.cc \
+SRCS=		main.cc \
 		parse_csv.cc \
 		graph.cc \
 		dijkstra.cc
