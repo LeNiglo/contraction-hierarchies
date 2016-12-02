@@ -1,3 +1,16 @@
+// Copyright 2010-2014 Google
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <iostream>
 #include <string>
 #include <limits>
@@ -6,6 +19,91 @@ using namespace std;
 #include "base.h"
 #include "graph.h"
 #include "dijkstra.h"
+
+// Pseudo-random generator, shamelessly copied from
+// https://github.com/google/or-tools/blob/master/src/base/random.h
+typedef int int32;
+typedef unsigned int uint32;
+typedef long long int64;
+class ACMRandom {
+ public:
+  explicit ACMRandom(int32 seed) : seed_(seed) {}
+
+  int32 Next() {
+    if (seed_ == 0) {
+      seed_ = 0x14fd4603;  // Arbitrary random constant
+    }
+    const int32 M = 2147483647L;  // 2^31-1
+    const int32 A = 16807;
+    // In effect, we are computing seed_ = (seed_ * A) % M, where M = 2^31-1
+    uint32 lo = A * static_cast<int32>(seed_ & 0xFFFF);
+    uint32 hi = A * static_cast<int32>(static_cast<uint32>(seed_) >> 16);
+    lo += (hi & 0x7FFF) << 16;
+    if (lo > M) {
+      lo &= M;
+      ++lo;
+    }
+    lo += hi >> 15;
+    if (lo > M) {
+      lo &= M;
+      ++lo;
+    }
+    return (seed_ = static_cast<int32>(lo));
+  }
+
+  // Returns a random value in [0..n-1]. If n == 0, always returns 0.
+  int32 Uniform(int32 n) { return n == 0 ? 0 : Next() % n; }
+
+  int64 Next64() {
+    const int64 next = Next();
+    return (next - 1) * 2147483646L + Next();
+  }
+
+  float RndFloat() {
+    return Next() * 0.000000000465661273646;  // x: x * (M-1) = 1 - eps
+  }
+
+  // Returns a double in [0, 1).
+  double RndDouble() {
+    // Android does not provide ieee754.h and the associated types.
+    union {
+      double d;
+      int64 i;
+    } ieee_double;
+    ieee_double.i = Next64();
+    ieee_double.i &= ~(1LL << 63);  // Clear sign bit.
+    // The returned number will be between 0 and 1. Take into account the
+    // exponent offset.
+    ieee_double.i |= (1023LL << 52);
+    return ieee_double.d - static_cast<double>(1.0);
+  }
+
+  double RandDouble() { return RndDouble(); }
+
+  double UniformDouble(double x) { return RandDouble() * x; }
+
+  // Returns a double in [a, b). The distribution is uniform.
+  double UniformDouble(double a, double b) { return a + (b - a) * RndDouble(); }
+
+  // Returns true with probability 1/n. If n=0, always returns true.
+  bool OneIn(int n) { return Uniform(n) == 0; }
+
+  void Reset(int32 seed) { seed_ = seed; }
+  static int32 DeterministicSeed() { return 0; }
+
+// RandomNumberGenerator concept. Example:
+//   ACMRandom rand(my_seed);
+//   std::random_shuffle(myvec.begin(), myvec.end(), rand);
+#if defined(_MSC_VER)
+  typedef __int64 difference_type;  // NOLINT
+#else
+  typedef long long difference_type;  // NOLINT
+#endif
+  int64 operator()(int64 val_max) { return Next64() % val_max; }
+
+ private:
+  int32 seed_;
+};
 
 string NodePathOfArcPath(const Graph& graph, const vector<int>& arc_path, int src) {
   string path;
@@ -153,7 +251,6 @@ int main() {
     Dijkstra dijkstra(&messy_graph, &messy_arc_lengths);
     const vector<int> empty;
     dijkstra.RunUntilAllTargetsAreReached(4, empty);
-
     CHECK_EQ(dijkstra.GetGraph().NumArcs(), 22);
     CHECK_NEAR(dijkstra.Distances()[0], 0.2, 1e-9);  // 4->5->0
     CHECK_NEAR(dijkstra.Distances()[1], 0.0, 1e-9);  // 4->6->1
@@ -214,7 +311,7 @@ int main() {
 
   // Performance / stress tests.
   cerr << "Building the big graph for the stress/performance test...";
-  srandom(0);
+  ACMRandom random(0);
   Graph grid_graph;
   vector<double> grid_arc_lengths;
   const int kSize = 1000;
@@ -225,25 +322,67 @@ int main() {
       arcs.push_back(make_pair((j - 1) * kSize + i, j * kSize + i));
       for (int k = 0; k < arcs.size(); ++k) {
         grid_graph.AddArc(arcs[k].first, arcs[k].second);
-        grid_arc_lengths.push_back(double(random()) / RAND_MAX);
+        grid_arc_lengths.push_back(random.RandDouble());
         grid_graph.AddArc(arcs[k].second, arcs[k].first);
-        grid_arc_lengths.push_back(double(random()) / RAND_MAX);
+        grid_arc_lengths.push_back(random.RandDouble());
       }
     }
   }
   cerr << "Done! Running the 'big' performance test" << endl;
+>>>>>>> 25018c217f5d45387c444098c95b63f4d0930328
 
-  // Run 100 Dijkstra that should be "relatively short" because the
-  // src/targets are closeby. Verify correctness for some.
-  {
-    Dijkstra dijkstra(&grid_graph, &grid_arc_lengths);
+void processLine(RoadData &data, std::string &line)
+{
+	std::vector<int> nodes;
+	double distance;
+	std::pair<std::pair<double, double>, std::pair<double, double> > query = parseLine(line);
+	int node = findNodeAt(data, query.first);
+	int node2 = findNodeAt(data, query.second);
 
+	if (node != -1 && node2 != -1)
+	{
+		nodes.push_back(findNodeAt(data, query.second));
+		Dijkstra dijkstra(&data.graph, &data.arc_durations);
+		dijkstra.RunUntilAllTargetsAreReached(node, nodes);
+
+		if ((distance = dijkstra.Distances()[nodes[0]]) == std::numeric_limits<double>::infinity())
+		{
+			std::cout << "NO PATH" << std::endl;
+		}
+		else
+		{
+			std::cout << distance << std::endl;
+		}
+
+	}
+	else
+	{
+		std::cout << "INVALID" << std::endl;
+	}
+}
+
+<<<<<<< HEAD
+int main(int argc, char** argv) {
+	if (argc != 2)
+	{
+		return (EXIT_FAILURE);
+	}
+	RoadData data = ParseCsvFile(argv[1]);
+
+	std::string line;
+	while (std::getline(cin, line)){
+		processLine(data, line);
+		line = "";
+	}
+
+	return (EXIT_SUCCESS);
+=======
     // Run a Dijkstra from one end to the other. It should explore the entire graph.
     clock_t c0 = clock();
     vector<int> targets;
     dijkstra.RunUntilAllTargetsAreReached(0, targets);
     clock_t c1 = clock();
-    CHECK_NEAR(dijkstra.Distances()[kSize * kSize - 1], 458.355733964, 1e-6);
+    CHECK_NEAR(dijkstra.Distances()[kSize * kSize - 1], 461.115791151, 1e-6);
     cout << "Test #" << num_tests++ << " PASSED! Performance: "
          << double(c1 - c0)/ CLOCKS_PER_SEC << " seconds for the big Dijkstra." << endl;
 
@@ -251,33 +390,46 @@ int main() {
     const int kNumDijkstras = 1000;
     double total_dist = 0.0;
     for (int k = 0; k < kNumDijkstras; ++k) {
-      const int src_x = random() % kSize;
-      const int src_y = random() % kSize;
+      const int src_x = random.Next() % kSize;
+      const int src_y = random.Next() % kSize;
       const int src = src_x * kSize + src_y;
-      const int dst_x = std::max(0, std::min(kSize - 1, int(src_x + (random() % 7) - 3)));
-      const int dst_y = std::max(0, std::min(kSize - 1, int(src_y + (random() % 7) - 3)));
+      const int dst_x = std::max(0, std::min(kSize - 1, int(src_x + (random.Next() % 7) - 3)));
+      const int dst_y = std::max(0, std::min(kSize - 1, int(src_y + (random.Next() % 7) - 3)));
       const int dst = dst_x * kSize + dst_y;
       vector<int> targets;
       targets.push_back(dst);
       dijkstra.RunUntilAllTargetsAreReached(src, targets);
       if (k == 27) {
-        CHECK_EQ(src, 313438)
-          << "IF THIS FAILED, YOUR CODE MAY BE FINE, BUT THE TEST DOESN'T WORK ON YOUR MACHINE -- GO TELL ME!";
-        CHECK_EQ(dst, 312435)
-          << "IF THIS FAILED, YOUR CODE MAY BE FINE, BUT THE TEST DOESN'T WORK ON YOUR MACHINE -- GO TELL ME!";
-        CHECK_NEAR(dijkstra.Distances()[dst], 1.340870288825, 1e-9);
+        CHECK_EQ(src, 41263);
+        CHECK_EQ(dst, 40265);
+        CHECK_NEAR(dijkstra.Distances()[dst], 1.01304829741, 1e-9);
         CHECK_EQ(NodePathOfArcPath(grid_graph, dijkstra.ArcPathFromSourceTo(dst), src),
-            "313438, 313437, 313436, 312436, 312435");
+            "41263, 40263, 40264, 40265");
         cout << "Test #" << num_tests++ << " PASSED" << endl;
       }
       total_dist += dijkstra.Distances()[dst];
     }
     c1 = clock();
-    CHECK_NEAR(total_dist, 1248.75449897, 1e-6);
+    CHECK_NEAR(total_dist, 1227.86145559, 1e-6);
     cout << "Test #" << num_tests++ << " PASSED! Performance: "
          << double(c1 - c0)/ CLOCKS_PER_SEC << " seconds for the 1000 dijkstras." << endl;
+
+    // Run one big Dijkstra with half the nodes as targets. This verifies that
+    // the solution doesn't do something in O(#targets) per Dijkstra step.
+    targets.clear();
+    for (int t = 0; t < kSize * kSize; ++t) {
+      if (random.Next() % 2) targets.push_back(t);
+    }
+    c0 = clock();
+    dijkstra.RunUntilAllTargetsAreReached(0, targets);
+    c1 = clock();
+    total_dist = 0;
+    for (int i = 0; i < targets.size(); ++i) {
+      total_dist += dijkstra.Distances()[targets[i]];
+    }
+    CHECK_NEAR(total_dist, 123972596.894, 1e-2);
+    cout << "Test #" << num_tests++ << " PASSED! Performance: "
+         << double(c1 - c0)/ CLOCKS_PER_SEC << " seconds for the big Dijkstra with many targets" << endl;
   }
 
-  cout << "DONE for now -- BUT MORE TESTS ARE COMING SOON, TESTING MORE THINGS"
-       << endl;
-}
+  cout << "All done! Congrats." << endl;

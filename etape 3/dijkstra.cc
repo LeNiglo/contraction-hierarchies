@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <vector>
+#include <set>
 #include "dijkstra.h"
 
 bool DijkstraState::operator<(const DijkstraState& other) const
@@ -23,14 +24,21 @@ const Graph& Dijkstra::GetGraph() const
 // nodes are explored).
 void Dijkstra::RunUntilAllTargetsAreReached(int source, const vector<int>& targets)
 {
-	std::vector<int> target(targets);
+	int nbTarget;
+	std::vector<int> target;
 	std::priority_queue<DijkstraState> queue;
+	std::set<int> reached;
+	bool emptyTargets = targets.empty();
 
-	if (target.size() == 0)
+	if (!emptyTargets)
 	{
-		for (int i = 0;i < _graph->NumNodes();++i)
-			target.push_back(i);
+		nbTarget = targets.size();
+		target.resize(_graph->NumNodes(), 0);
 	}
+
+
+	for (auto it : targets)
+		target[it] = 1;
 
 	_reachedNode.clear();
 	_distances.clear();
@@ -39,35 +47,42 @@ void Dijkstra::RunUntilAllTargetsAreReached(int source, const vector<int>& targe
 	_parentsArc.resize(_graph->NumNodes(), -1);
 
 	_distances[source] = 0;
-	_reachedNode.push_back(source);
 
-	while (!target.empty() || !queue.empty())
+	while ((emptyTargets || nbTarget > 0) || !queue.empty())
 	{
-		Travel(source, queue, target);
+		Travel(source, queue, target, nbTarget, emptyTargets);
 
 		DijkstraState nextSource;
 
-		do {
-			if (queue.empty())
-				return;
-			nextSource = queue.top();
-			queue.pop();
-		} while(std::find(_reachedNode.begin(), _reachedNode.end(), nextSource.node) != _reachedNode.end());
-		_reachedNode.push_back(source);
+		if (queue.empty())
+			break;
+		nextSource = queue.top();
+		queue.pop();
 
+		reached.insert(reached.end(), source);
 		source = nextSource.node;
 	}
+	reached.insert(reached.end(), source);
+	_reachedNode = std::vector<int>( reached.begin(), reached.end() );
 }
 
 void Dijkstra::Travel(int source, std::priority_queue<DijkstraState>& queue,
-						vector<int>& targets)
+						vector<int>& targets, int &nbTarget, bool emptyTargets)
 {
 	vector<int> outArc = _graph->OutgoingArcs(source);
 
 	// Erase Target if find
-	std::vector<int>::iterator it = std::find(targets.begin(), targets.end(), source);
-	if (it != targets.end())
-		targets.erase(it);
+	if (!emptyTargets)
+	{
+		if (targets[source] == 1)
+		{
+			targets[source] = 0;
+			nbTarget--;
+		}
+		// std::vector<int>::iterator it = std::find(targets.begin(), targets.end(), source);
+		// if (it != targets.end())
+		// 	targets.erase(it);
+	}
 
 	for (auto it : outArc)
 	{

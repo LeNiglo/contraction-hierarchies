@@ -56,6 +56,7 @@ void processLine(RoadData &data, std::string &line)
 	}
 }
 
+
 int main(int argc, char** argv) {
 	if (argc != 2)
 	{
