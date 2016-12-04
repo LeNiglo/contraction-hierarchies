@@ -57,8 +57,8 @@ std::vector<int> BidirectionalDijkstra::FindShortestPath(int from, int to)
   distance_to_[to] = 0;
   reached_nodes_from_.push_back(from);
   reached_nodes_to_.push_back(to);
-  pq_from_.push({from, 0, false});
-  pq_to_.push({to, 0, false});
+  pq_from_.push({from, 0});
+  pq_to_.push({to, 0});
 
   int stepFromContinue = 1;
   int stepToContinue = 1;
@@ -74,6 +74,28 @@ std::vector<int> BidirectionalDijkstra::FindShortestPath(int from, int to)
   ) {
       stepFromContinue = this->stepFrom(to);
       stepToContinue = this->stepTo(from);
+	//   double min = kInfinity;
+	//   for (auto it : this->conv_points_)
+	//   {
+	// 	  std::cerr << "Point : "<< it  << std::endl;
+	// 	  std::cerr << "Distance : "<< this->distance_from_[it] + this->distance_to_[it]  << std::endl;
+	// 	  std::cerr << "Min : "<< min  << std::endl;
+	// 	  if (this->distance_from_[it] + this->distance_to_[it] < min)
+	// 	  {
+	// 		  min = this->distance_from_[it] + this->distance_to_[it];
+	// 		  conv_point_ = it;
+	// 	  }
+	//   }
+	//   if (this->conv_points_.size())
+	//   {
+	// 	  std::cerr << "Test: "<< this->pq_from_.top().node << std::endl;
+	// 	  std::cerr << "Distance: "<< this->pq_from_.top().distance << std::endl;
+	  //
+	// 	  std::cerr << "Conv Point: "<< this->conv_point_  << std::endl;
+	// 	  stepToContinue = 0;
+	// 	  stepFromContinue = 0;
+	//   }
+
       if (_DEBUG)
         std::cerr << "================================" << std::endl;
   }
@@ -86,6 +108,9 @@ std::vector<int> BidirectionalDijkstra::FindShortestPath(int from, int to)
 
   if (stepFromContinue == 0 || stepToContinue == 0)
   {
+	this->conv_point_ = conv_points_.top().node;
+	while (!conv_points_.empty()) conv_points_.pop();  // We should probably just reinitialize it.
+
     if (_DEBUG)
       std::cerr << "FOUND @ point #" << conv_point_ << " => " << stepFromContinue << ", " << stepToContinue << std::endl;
 
@@ -111,6 +136,7 @@ std::vector<int> BidirectionalDijkstra::FindShortestPath(int from, int to)
     }
     return v1;
   }
+  while (!conv_points_.empty()) conv_points_.pop();  // We should probably just reinitialize it.
 
   if (_DEBUG)
     std::cerr << "???? => " << stepFromContinue << ", " << stepToContinue << std::endl;
@@ -131,17 +157,19 @@ int     BidirectionalDijkstra::stepFrom(int target)
     if (_DEBUG)
       std::cerr << "[FROM] node #" << node << ", looking for #" << target << std::endl;
     const double distance = pq_from_.top().distance;
-    bool conv_point = pq_from_.top().conv_point;
     pq_from_.pop();
     if (graph_.OutgoingArcs(node).size() == 0) return -1;
     if (distance > distance_from_[node]) return 1;
-    if (target == node || conv_point) return 0;
+	if (!conv_points_.empty() && distance > distance_from_[conv_points_.top().node]) return 0;
+	if (target == node) return 0;
     for (const int arc : graph_.OutgoingArcs(node)) {
       const int head = graph_.Head(arc);
       const double d = distance_from_[node] + arc_lengths_[arc];
       if (_DEBUG)
         std::cerr << "distance_from_[" << head << "] = " << d << std::endl;
-      if (indexed_nodes_[head] & 0x02) conv_point = true;
+      if (indexed_nodes_[head] & 0x02) {
+		  this->conv_points_.push({head, d + distance_to_[head]});
+	  }
       if (d >= distance_from_[head]) continue;
       if (distance_from_[head] == kInfinity)
       {
@@ -150,7 +178,7 @@ int     BidirectionalDijkstra::stepFrom(int target)
       }
       distance_from_[head] = d;
       parent_arc_[head] = arc;
-      pq_from_.push({head, d, conv_point});
+      pq_from_.push({head, d});
     }
 
     return 1;
@@ -166,17 +194,19 @@ int     BidirectionalDijkstra::stepTo(int target)
     if (_DEBUG)
       std::cerr << "[TO] node #" << node << ", looking for #" << target << std::endl;
     const double distance = pq_to_.top().distance;
-    bool conv_point = pq_to_.top().conv_point;
     pq_to_.pop();
     if (graph_.IncomingArcs(node).size() == 0) return -1;
     if (distance > distance_to_[node]) return 1;
-    if (target == node || conv_point) return 0;
+	if (!conv_points_.empty() && distance > distance_to_[conv_points_.top().node]) return 0;
+    if (target == node) return 0;
     for (const int arc : graph_.IncomingArcs(node)) {
       const int tail = graph_.Tail(arc);
       const double d = distance_to_[node] + arc_lengths_[arc];
       if (_DEBUG)
         std::cerr << "distance_to_[" << tail << "] = " << d << std::endl;
-      if (indexed_nodes_[tail] & 0x01) conv_point = true;
+      if (indexed_nodes_[tail] & 0x01) {
+		  this->conv_points_.push({tail, d + distance_from_[tail]});
+	  }
       if (d >= distance_to_[tail]) continue;
       if (distance_to_[tail] == kInfinity)
       {
@@ -185,7 +215,7 @@ int     BidirectionalDijkstra::stepTo(int target)
       }
       distance_to_[tail] = d;
       child_arc_[tail] = arc;
-      pq_to_.push({tail, d, conv_point});
+      pq_to_.push({tail, d});
     }
 
     return 1;

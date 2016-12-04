@@ -1,7 +1,7 @@
 #ifndef DIJKSTRA_H_
 #define DIJKSTRA_H_
 
-# define _DEBUG true
+# define _DEBUG false
 
 #include <limits>  // For std::numeric_limits<double>::infinity().
 #include <queue>   // For std::priority_queue<>
@@ -20,7 +20,6 @@ constexpr double kInfinity = std::numeric_limits<double>::infinity();
 struct DijkstraState {
   int node;
   double distance;
-  bool conv_point;
 
   // So that we can do std::priority_queue<DijkstraState>. Beware the ordering!
   bool operator<(const DijkstraState& other) const {
@@ -85,6 +84,7 @@ private:
   const vector<double>& arc_lengths_;
 
   int conv_point_;
+  // std::vector<int> conv_points_;
 
   vector<double> distance_to_;
   vector<double> distance_from_;
@@ -94,6 +94,7 @@ private:
   vector<int> reached_nodes_to_;
   priority_queue<DijkstraState> pq_to_;
   priority_queue<DijkstraState> pq_from_;
+  priority_queue<DijkstraState> conv_points_;
   vector<int> indexed_nodes_;
 
 public:
