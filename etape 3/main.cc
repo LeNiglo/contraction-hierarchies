@@ -36,7 +36,7 @@ void processLine(RoadData &data, std::string &line)
 
 	if (node != -1 && node2 != -1)
 	{
-		nodes.push_back(findNodeAt(data, query.second));
+		nodes.push_back(node2);
 		Dijkstra dijkstra(&data.graph, &data.arc_durations);
 		dijkstra.RunUntilAllTargetsAreReached(node, nodes);
 
@@ -46,7 +46,13 @@ void processLine(RoadData &data, std::string &line)
 		}
 		else
 		{
-			std::cout << distance << std::endl;
+			std::cout << distance;
+			std::vector<int> path = dijkstra.ArcPathFromSourceTo(node2);
+			for (auto& it: path)
+			{
+				std::cout << " " << data.arc_durations[it];
+			}
+			std::cout << std::endl;
 		}
 
 	}
