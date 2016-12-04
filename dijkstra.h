@@ -84,18 +84,19 @@ private:
   const vector<double>& arc_lengths_;
 
   int conv_point_;
-  // std::vector<int> conv_points_;
 
-  vector<double> distance_to_;
   vector<double> distance_from_;
+  vector<double> distance_to_;
+
   vector<int> parent_arc_;
   vector<int> child_arc_;
   vector<int> reached_nodes_from_;
   vector<int> reached_nodes_to_;
+  vector<int> indexed_nodes_;
+
   priority_queue<DijkstraState> pq_to_;
   priority_queue<DijkstraState> pq_from_;
   priority_queue<DijkstraState> conv_points_;
-  vector<int> indexed_nodes_;
 
 public:
   BidirectionalDijkstra(const Graph* graph, const std::vector<double>* arc_lengths);

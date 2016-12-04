@@ -28,29 +28,30 @@ std::pair<std::pair<double, double>, std::pair<double, double> >	parseLine(std::
 
 void processLine(RoadData &data, std::string &line)
 {
-	std::vector<int> nodes;
-	double distance;
+	double duration = 0;
 	std::pair<std::pair<double, double>, std::pair<double, double> > query = parseLine(line);
 	int node = findNodeAt(data, query.first);
 	int node2 = findNodeAt(data, query.second);
 
 	if (node != -1 && node2 != -1)
 	{
-		nodes.push_back(node2);
-		Dijkstra dijkstra(&data.graph, &data.arc_durations);
-		dijkstra.RunUntilAllTargetsAreReached(node, nodes);
+		BidirectionalDijkstra dijkstra(&data.graph, &data.arc_durations);
+		std::vector<int> path = dijkstra.FindShortestPath(node, node2);
 
-		if ((distance = dijkstra.Distances()[nodes[0]]) == std::numeric_limits<double>::infinity())
+		if (path.empty())
 		{
 			std::cout << "NO PATH" << std::endl;
 		}
 		else
 		{
-			std::cout << distance;
-			std::vector<int> path = dijkstra.ArcPathFromSourceTo(node2);
 			for (auto& it: path)
 			{
-				std::cout << " " << data.arc_durations[it];
+				duration += data.arc_durations[it];
+			}
+			std::cout << duration;
+			for (auto& it: path)
+			{
+					std::cout << " " << data.arc_durations[it];
 			}
 			std::cout << std::endl;
 		}
