@@ -48,12 +48,12 @@ void processLine(RoadData &data, std::string &line)
 			{
 				duration += data.arc_durations[it];
 			}
-			std::cout << duration;
+			printf("%.6lf", duration);
 			for (auto& it: path)
 			{
-					std::cout << " " << data.arc_durations[it];
+				printf(" %.6lf", data.arc_durations[it]);
 			}
-			std::cout << std::endl;
+			printf("\n");
 		}
 
 	}
