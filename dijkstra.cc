@@ -39,7 +39,7 @@ void Dijkstra::RunUntilAllTargetsAreReached(int source, const vector<int>& targe
   // Basic initialization.
   distance_[source] = 0;
   reached_nodes_.push_back(source);
-  pq_.push({source, 0});
+  pq_.push({source, 0, false});
 
   // Collect the targets.
   int num_targets_left = 0;
@@ -70,7 +70,7 @@ void Dijkstra::RunUntilAllTargetsAreReached(int source, const vector<int>& targe
       if (distance_[head] == kInfinity) reached_nodes_.push_back(head);
       distance_[head] = d;
       parent_arc_[head] = arc;
-      pq_.push({head, d});
+      pq_.push({head, d, false});
     }
   }
 

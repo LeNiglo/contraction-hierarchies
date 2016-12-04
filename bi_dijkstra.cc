@@ -2,10 +2,12 @@
 
 BidirectionalDijkstra::BidirectionalDijkstra(const Graph* graph, const vector<double>* arc_lengths)
   : graph_(*graph), arc_lengths_(*arc_lengths),
+    indexed_nodes_(graph_.NumNodes(), 0),
     distance_from_(graph_.NumNodes(), kInfinity),
     distance_to_(graph_.NumNodes(), kInfinity),
     parent_arc_(graph_.NumNodes(), -1),
-    child_arc_(graph_.NumNodes(), -1) {}
+    child_arc_(graph_.NumNodes(), -1),
+    conv_point_(-1) {}
 
 
 std::vector<int> BidirectionalDijkstra::FindShortestPath(int from, int to)
@@ -13,16 +15,24 @@ std::vector<int> BidirectionalDijkstra::FindShortestPath(int from, int to)
   CHECK(pq_from_.empty());
   CHECK(pq_to_.empty());
 
-  std::cout << "FindShortestPath(" << from << ", " << to << ");" << std::endl;
+  if (from == to)
+  return std::vector<int>();
+
+  conv_point_ = -1;
+
+  if (_DEBUG)
+    std::cerr << "\n  =>  FindShortestPath(" << from << ", " << to << ");\n" << std::endl;
 
   // Clean up the last Dijkstra run, sparsely.
   for (const int node : reached_nodes_from_) {
+    indexed_nodes_[node] = 0;
     distance_from_[node] = kInfinity;
     parent_arc_[node] = -1;
   }
   reached_nodes_from_.clear();
 
   for (const int node : reached_nodes_to_) {
+    indexed_nodes_[node] = 0;
     distance_to_[node] = kInfinity;
     child_arc_[node] = -1;
   }
@@ -35,6 +45,7 @@ std::vector<int> BidirectionalDijkstra::FindShortestPath(int from, int to)
   CHECK_GE(num_nodes, 1)
       << "The graph shrunk since the construction of the Dijkstra object!";
   if (num_nodes > 1) {
+    indexed_nodes_.resize(num_nodes, 0);
     distance_from_.resize(num_nodes, kInfinity);
     distance_to_.resize(num_nodes, kInfinity);
     parent_arc_.resize(num_nodes, -1);
@@ -46,42 +57,63 @@ std::vector<int> BidirectionalDijkstra::FindShortestPath(int from, int to)
   distance_to_[to] = 0;
   reached_nodes_from_.push_back(from);
   reached_nodes_to_.push_back(to);
-  pq_from_.push({from, 0});
-  pq_to_.push({to, 0});
+  pq_from_.push({from, 0, false});
+  pq_to_.push({to, 0, false});
 
   int stepFromContinue = 1;
   int stepToContinue = 1;
 
-  std::cout << "run exploration" << std::endl;
+  indexed_nodes_[from] |= 0x01;
+  indexed_nodes_[to] |= 0x02;
+
+  if (_DEBUG)
+    std::cerr << "run exploration" << std::endl;
   // Run the Dijkstra exploration.
   while (
     stepFromContinue == 1 && stepToContinue == 1
   ) {
       stepFromContinue = this->stepFrom(to);
       stepToContinue = this->stepTo(from);
+      if (_DEBUG)
+        std::cerr << "================================" << std::endl;
   }
-  std::cout << "finished exploration" << std::endl;
+  if (_DEBUG)
+    std::cerr << "finished exploration" << std::endl;
 
   // Reset the 'temporary' data structures to their initial state.
   while (!pq_from_.empty()) pq_from_.pop();  // We should probably just reinitialize it.
   while (!pq_to_.empty()) pq_to_.pop();  // We should probably just reinitialize it.
 
-  if (stepFromContinue == 0)
+  if (stepFromContinue == 0 || stepToContinue == 0)
   {
-    std::cout << "Break From 'FROM'" << std::endl;
-    return this->ArcPathFromSourceTo(to);
+    if (_DEBUG)
+      std::cerr << "FOUND @ point #" << conv_point_ << " => " << stepFromContinue << ", " << stepToContinue << std::endl;
+
+    std::vector<int> v1, v2;
+    if (this->conv_point_ == to)
+    {
+      v1 = this->ArcPathFromSourceTo(this->conv_point_);
+    }
+    else if (this->conv_point_ == from)
+    {
+      v1 = this->ArcPathFromTargetTo(this->conv_point_);
+    }
+    else
+    {
+      v1 = this->ArcPathFromSourceTo(this->conv_point_);
+      v2 = this->ArcPathFromTargetTo(this->conv_point_);
+      if (_DEBUG)
+      {
+        std::cerr << NodePathOfArcPath(graph_, v1, to) << " // " << NodePathOfArcPath(graph_, v2, from) << std::endl;
+      }
+      v1.insert(v1.end(), v2.begin(), v2.end());
+
+    }
+    return v1;
   }
-  if (stepToContinue == 0)
-  {
-    std::cout << "Break From 'TO'" << std::endl;
-    return this->ArcPathFromTargetTo(from);
-  }
-  if (stepFromContinue == -1 && stepToContinue == -1)
-  {
-    std::cout << "Returns EMPTY PATHS" << std::endl;
-    return std::vector<int>();
-  }
-  std::cout << "???? => " << stepFromContinue << ", " << stepToContinue << std::endl;
+
+  if (_DEBUG)
+    std::cerr << "???? => " << stepFromContinue << ", " << stepToContinue << std::endl;
   return std::vector<int>();
 }
 
@@ -96,21 +128,31 @@ int     BidirectionalDijkstra::stepFrom(int target)
   if (!pq_from_.empty())
   {
     const int node = pq_from_.top().node;
+    if (_DEBUG)
+      std::cerr << "[FROM] node #" << node << ", looking for #" << target << std::endl;
     const double distance = pq_from_.top().distance;
+    bool conv_point = pq_from_.top().conv_point;
     pq_from_.pop();
     if (graph_.OutgoingArcs(node).size() == 0) return -1;
     if (distance > distance_from_[node]) return 1;
-    if (target == node) return 0;
+    if (target == node || conv_point) return 0;
     for (const int arc : graph_.OutgoingArcs(node)) {
       const int head = graph_.Head(arc);
       const double d = distance_from_[node] + arc_lengths_[arc];
-      if (d >= distance_from_[head]) return 1;
-      if (distance_from_[head] == kInfinity) reached_nodes_from_.push_back(head);
+      if (_DEBUG)
+        std::cerr << "distance_from_[" << head << "] = " << d << std::endl;
+      if (indexed_nodes_[head] & 0x02) conv_point = true;
+      if (d >= distance_from_[head]) continue;
+      if (distance_from_[head] == kInfinity)
+      {
+        reached_nodes_from_.push_back(head);
+        indexed_nodes_[head] |= 0x01;
+      }
       distance_from_[head] = d;
-      std::cout << "distance_from_[" << head << "] = " << d << std::endl;
       parent_arc_[head] = arc;
-      pq_from_.push({head, d});
+      pq_from_.push({head, d, conv_point});
     }
+
     return 1;
   }
   return -1;
@@ -121,52 +163,66 @@ int     BidirectionalDijkstra::stepTo(int target)
   if (!pq_to_.empty())
   {
     const int node = pq_to_.top().node;
+    if (_DEBUG)
+      std::cerr << "[TO] node #" << node << ", looking for #" << target << std::endl;
     const double distance = pq_to_.top().distance;
+    bool conv_point = pq_to_.top().conv_point;
     pq_to_.pop();
     if (graph_.IncomingArcs(node).size() == 0) return -1;
     if (distance > distance_to_[node]) return 1;
-    if (target == node) return 0;
+    if (target == node || conv_point) return 0;
     for (const int arc : graph_.IncomingArcs(node)) {
       const int tail = graph_.Tail(arc);
       const double d = distance_to_[node] + arc_lengths_[arc];
-      if (d >= distance_to_[tail]) return 1;
-      if (distance_to_[tail] == kInfinity) reached_nodes_to_.push_back(tail);
+      if (_DEBUG)
+        std::cerr << "distance_to_[" << tail << "] = " << d << std::endl;
+      if (indexed_nodes_[tail] & 0x01) conv_point = true;
+      if (d >= distance_to_[tail]) continue;
+      if (distance_to_[tail] == kInfinity)
+      {
+        reached_nodes_to_.push_back(tail);
+        indexed_nodes_[tail] |= 0x02;
+      }
       distance_to_[tail] = d;
-      std::cout << "distance_to_[" << tail << "] = " << d << std::endl;
       child_arc_[tail] = arc;
-      pq_to_.push({tail, d});
+      pq_to_.push({tail, d, conv_point});
     }
+
     return 1;
   }
   return -1;
 }
 
-vector<int> BidirectionalDijkstra::ArcPathFromSourceTo(int node) const
+vector<int> BidirectionalDijkstra::ArcPathFromSourceTo(int node)
 {
-  std::cout << "ArcPathFromSourceTo ... \t";
   vector<int> arcs;
   for (;;) {
     const int a = parent_arc_[node];
     if (a < 0) break;
+    if (_DEBUG)
+    {
+      // std::cerr << "parent_arc_[" << node << "] == " << a << std::endl;
+    }
     arcs.push_back(a);
     node = graph_.Tail(a);
   }
   std::reverse(arcs.begin(), arcs.end());
-  std::cout << "Done." << std::endl;
   return arcs;
 }
 
-vector<int> BidirectionalDijkstra::ArcPathFromTargetTo(int node) const
+vector<int> BidirectionalDijkstra::ArcPathFromTargetTo(int node)
 {
-  std::cout << "ArcPathFromSourceTo ... \t";
   vector<int> arcs;
   for (;;) {
     const int a = child_arc_[node];
     if (a < 0) break;
+    if (_DEBUG)
+    {
+      // std::cerr << "child_arc_[" << node << "] == " << a << std::endl;
+    }
     arcs.push_back(a);
     node = graph_.Head(a);
   }
   // std::reverse(arcs.begin(), arcs.end());
-  std::cout << "Done." << std::endl;
   return arcs;
 }

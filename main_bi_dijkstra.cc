@@ -264,7 +264,7 @@ int main() {
   for (int i = 0; i < hc_arc_lengths.size(); ++i) {
     hc_arc_lengths[i] = random.RandDouble();
   }
-  cerr << "Done! Running the 'big' performance tests" << endl;
+  cerr << "Done!\nhc_graph = " << hc_graph.NumNodes() << "\nRunning the 'big' performance tests" << endl;
 
   // Run N BidirectionalDijkstra that should be "relatively short" because the
   // half-spheres are much smaller than the full one.

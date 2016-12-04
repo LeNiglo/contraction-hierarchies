@@ -1,6 +1,8 @@
 #ifndef DIJKSTRA_H_
 #define DIJKSTRA_H_
 
+# define _DEBUG true
+
 #include <limits>  // For std::numeric_limits<double>::infinity().
 #include <queue>   // For std::priority_queue<>
 #include <vector>
@@ -11,11 +13,14 @@
 using std::priority_queue;
 using std::vector;
 
+string NodePathOfArcPath(const Graph& graph, const vector<int>& arc_path, int src);
+
 constexpr double kInfinity = std::numeric_limits<double>::infinity();
 
 struct DijkstraState {
   int node;
   double distance;
+  bool conv_point;
 
   // So that we can do std::priority_queue<DijkstraState>. Beware the ordering!
   bool operator<(const DijkstraState& other) const {
@@ -79,6 +84,8 @@ private:
   const Graph& graph_;
   const vector<double>& arc_lengths_;
 
+  int conv_point_;
+
   vector<double> distance_to_;
   vector<double> distance_from_;
   vector<int> parent_arc_;
@@ -87,6 +94,7 @@ private:
   vector<int> reached_nodes_to_;
   priority_queue<DijkstraState> pq_to_;
   priority_queue<DijkstraState> pq_from_;
+  vector<int> indexed_nodes_;
 
 public:
   BidirectionalDijkstra(const Graph* graph, const std::vector<double>* arc_lengths);
@@ -99,8 +107,8 @@ public:
   // TODO(you): fill the rest and implement the .cc.
   int stepFrom(int target);
   int stepTo(int target);
-	std::vector<int> ArcPathFromSourceTo(int node) const;
-	std::vector<int> ArcPathFromTargetTo(int node) const;
+	std::vector<int> ArcPathFromSourceTo(int node);
+	std::vector<int> ArcPathFromTargetTo(int node);
 };
 
 #endif  // DIJKSTRA_H_
