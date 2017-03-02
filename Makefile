@@ -1,11 +1,11 @@
 NAME=		server
 
-CXXFLAGS=	-std=c++11 -Wall -Wextra -W #-Werror
+CXXFLAGS=	-std=c++11 -O2 -Wall -Wextra -W #-Werror
 
 SRCS=		main.cc \
 			parse_csv.cc \
 			graph.cc \
-			bi_dijkstra.cc
+			bidi_dijkstra.cc
 
 OBJS=		$(SRCS:.cc=.o)
 

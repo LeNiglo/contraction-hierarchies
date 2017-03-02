@@ -18,7 +18,7 @@ using namespace std;
 
 #include "base.h"
 #include "graph.h"
-#include "dijkstra.h"
+#include "bidi_dijkstra.h"
 
 // Pseudo-random generator, shamelessly copied from
 // https://github.com/google/or-tools/blob/master/src/base/random.h
@@ -264,7 +264,7 @@ int main() {
   for (int i = 0; i < hc_arc_lengths.size(); ++i) {
     hc_arc_lengths[i] = random.RandDouble();
   }
-  cerr << "Done!\nhc_graph = " << hc_graph.NumNodes() << "\nRunning the 'big' performance tests" << endl;
+  cerr << "Done! Running the 'big' performance tests" << endl;
 
   // Run N BidirectionalDijkstra that should be "relatively short" because the
   // half-spheres are much smaller than the full one.

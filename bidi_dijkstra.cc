@@ -1,4 +1,4 @@
-#include "dijkstra.h"
+#include "bidi_dijkstra.h"
 
 BidirectionalDijkstra::BidirectionalDijkstra(const Graph* graph, const vector<double>* arc_lengths)
 : graph_(*graph),
